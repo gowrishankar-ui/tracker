@@ -130,9 +130,9 @@ textarea{width:100%;min-height:260px;font-family:Consolas,monospace;font-size:12
 
 <script>
 let READY=false,PROFILE=null,FS=null,LISTENING=false;
- const FIREBASE_CONFIG = { apiKey: 'AIzaSyDGYvZLwlaVJAvc_6sIoBZn-mPSPn2lV3c', authDomain: 'tracker-f5cf8.firebaseapp.com', projectId: 'tracker-f5cf8', storageBucket: 'tracker-f5cf8.firebasestorage.app', messagingSenderId: '362481539711', appId: '1:362481539711:web:73d29d950f5d5ae690bd4a' };
+const FIREBASE_CONFIG = { apiKey: 'AIzaSyDGYvZLwlaVJAvc_6sIoBZn-mPSPn2lV3c', authDomain: 'tracker-f5cf8.firebaseapp.com', projectId: 'tracker-f5cf8', storageBucket: 'tracker-f5cf8.firebasestorage.app', messagingSenderId: '362481539711', appId: '1:362481539711:web:73d29d950f5d5ae690bd4a' };
 const LAST={},QUEUE={};
-function recOf(t){const r=Object.assign({},t);delete r.status;return r;}
+function recOf(t){const r=Object.assign({},t);delete r.status;r.members=(t.members||[]).map(([n,x])=>({n:n||'',r:x||''}));r.metrics=(t.metrics||[]).map(([v,l])=>({v:v||'',l:l||''}));return r;}
 function showAccess(m){const a=document.getElementById('access');if(a)a.textContent=m;}
 function canEditTeam(id){return !!PROFILE&&(PROFILE.role==='admin'||(PROFILE.teams||[]).includes(id));}
 function saveIfChanged(t){if(!READY||!FS||!canEditTeam(t.id))return;const r=recOf(t);const j=JSON.stringify(r);if(LAST[t.id]===j)return;LAST[t.id]=j;QUEUE[t.id]=(QUEUE[t.id]||Promise.resolve()).then(()=>FS.collection('teams').doc(t.id).set(r)).catch(e=>showAccess('Could not save '+t.id+': '+(e.message||e.code)));}
@@ -145,7 +145,7 @@ function startAuth(){
  firebase.initializeApp(FIREBASE_CONFIG);FS=firebase.firestore();
  document.body.classList.add('readonly');
  showAccess('View only. Sign in to edit.');
- FS.collection('teams').onSnapshot(sn=>{sn.docs.forEach(d=>{if(!d.exists)return;const data=JSON.parse(JSON.stringify(d.data()));let t=TEAMS.find(x=>x.id===d.id);if(t)Object.assign(t,data);else{t=data;TEAMS.push(t);}if(data.photo)PHOTOS[d.id]=data.photo;LAST[d.id]=JSON.stringify(recOf(t));});READY=true;render();},e=>showAccess('Live data unavailable: '+e.message));
+ FS.collection('teams').onSnapshot(sn=>{sn.docs.forEach(d=>{if(!d.exists)return;const data=JSON.parse(JSON.stringify(d.data()));if(Array.isArray(data.members))data.members=data.members.map(m=>[m.n,m.r]);if(Array.isArray(data.metrics))data.metrics=data.metrics.map(m=>[m.v,m.l]);let t=TEAMS.find(x=>x.id===d.id);if(t)Object.assign(t,data);else{t=data;TEAMS.push(t);}if(data.photo)PHOTOS[d.id]=data.photo;LAST[d.id]=JSON.stringify(recOf(t));});READY=true;render();},e=>showAccess('Live data unavailable: '+e.message));
  firebase.auth().onAuthStateChanged(async u=>{
   const btn=document.getElementById('authBtn');
   if(!u){PROFILE=null;document.body.classList.add('readonly');btn.textContent='Sign in to edit';showAccess('View only. Sign in to edit.');return;}
@@ -225,7 +225,7 @@ function render(){
     const p=pct(t);
     return `<div class="card ${t.status==="not_started"?"empty":""}" tabindex="0" onclick="openTeam('${t.id}')" onkeydown="if(event.key==='Enter')openTeam('${t.id}')">
       <div class="row"><span class="tid">${t.id}${t.category?" | "+esc(t.category):""}</span>${pill(t.status,TS)}</div>
-      <div class="title">${esc(t.name)}</div>
+      ${PHOTOS[t.id]?`<img src="${PHOTOS[t.id]}" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px">`:""}<div class="title">${esc(t.name)}</div>
       <div class="meta"><b>Anchor:</b> ${esc(t.anchor)}<br><b>SPOC:</b> ${esc(t.spoc)}${t.mentor?"<br><b>Mentor:</b> "+esc(t.mentor):""}</div>
       <div class="pct">${doneCount(t)} of ${ALL.length} stages done (${p}%)</div>
       <div class="bar"><i style="width:${p}%"></i></div>
