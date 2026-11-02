@@ -133,7 +133,6 @@ textarea{width:100%;min-height:260px;font-family:Consolas,monospace;font-size:12
 let READY=false,PROFILE=null,FS=null,LISTENING=false;
 const FIREBASE_CONFIG = { apiKey: 'AIzaSyDGYvZLwlaVJAvc_6sIoBZn-mPSPn2lV3c', authDomain: 'tracker-f5cf8.firebaseapp.com', projectId: 'tracker-f5cf8', storageBucket: 'tracker-f5cf8.firebasestorage.app', messagingSenderId: '362481539711', appId: '1:362481539711:web:73d29d950f5d5ae690bd4a' }; 
 const LAST={},QUEUE={};
-const LAST={},QUEUE={};
 function recOf(t){const r=Object.assign({},t);delete r.status;r.members=(t.members||[]).map(([n,x])=>({n:n||'',r:x||''}));r.metrics=(t.metrics||[]).map(([v,l])=>({v:v||'',l:l||''}));return r;}
 function showAccess(m){const a=document.getElementById('access');if(a)a.textContent=m;}
 function canEditTeam(id){return !!PROFILE&&(PROFILE.role==='admin'||(PROFILE.teams||[]).includes(id));}
