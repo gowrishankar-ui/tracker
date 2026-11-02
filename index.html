@@ -80,7 +80,8 @@ textarea{width:100%;min-height:260px;font-family:Consolas,monospace;font-size:12
 .readonly select[data-s],.readonly input[type=url],.readonly button[onclick^="editTeam"],.readonly button[onclick="openImport()"],.readonly button[onclick^="toggleDocEdit"]{display:none!important}
 .readonly input[type=file]{display:none!important}
 .notadmin button[onclick="openImport()"]{display:none!important}
-.stxt{display:none}.readonly .stxt,.lockable:not(.editing) .stxt{display:inline}.pen{background:none;color:var(--ink);border:none;padding:0 4px;font-size:13px;cursor:pointer}.readonly .pen{display:none!important}.lockable:not(.editing) select[data-s]{display:none!important}
+.stxt{display:none}.readonly .stxt,.pen{background:none;color:var(--ink);border:none;padding:0 4px;font-size:13px;cursor:pointer}.readonly .pen{display:none!important}
+[data-lbl][contenteditable="true"]{outline:1px dashed var(--red);padding:0 3px;border-radius:3px}
 @media (max-width:900px){.panels{grid-template-columns:1fr}.phases{grid-template-columns:1fr}#teamModal{aspect-ratio:auto}#teamModal .hdr{grid-template-columns:1fr}#teamModal .hdr>label{grid-column:1;grid-row:auto}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -249,7 +250,7 @@ function render(){
 function openTeam(id){
   const t=TEAMS.find(x=>x.id===id);if(!t)return;
   const p=pct(t);
-  const phases=PHASES.map(ph=>`<div class="phase${ph.name==='Build & Validate'?' lockable':''}"><h5>${ph.name}${ph.name==='Build & Validate'?'<button class="pen" title="Edit stages" onclick="this.closest(\'.phase\').classList.toggle(\'editing\')">&#9998;</button>':''}</h5>${ph.items.map(s=>`<div class="stage">${dot(t.stages[s])}<span style="flex:1">${esc(s)}</span><select data-s="${esc(s)}" onchange="setStage('${t.id}',this.dataset.s,this.value)" style="flex:1 1 100%;min-width:0;width:100%;font-size:11px;padding:2px 4px">${Object.entries(ST).map(([k,[l]])=>`<option value="${k}" ${(t.stages[s]||"none")===k?"selected":""}>${l}</option>`).join("")}</select><span class="stxt" style="font-size:11px;color:var(--muted)">${ST[t.stages[s]||"none"][0]}</span></div>`).join("")}</div>`).join("");
+  const phases=PHASES.map(ph=>`<div class="phase"><h5>${ph.name}</h5>${ph.items.map(s=>`<div class="stage${['Mechanical','Electrical & Electronics'].includes(s)?' lockable':''}">${dot(t.stages[s])}${['Mechanical','Electrical & Electronics'].includes(s)?'<button class="pen" title="Edit" onclick="editLabel(this)">&#9998;</button>':''}<span style="flex:1" data-lbl="${esc(s)}" onblur="saveLabel('${t.id}',this)">${esc((t.labels&&t.labels[s])||s)}</span><select data-s="${esc(s)}" onchange="setStage('${t.id}',this.dataset.s,this.value)" style="flex:1 1 100%;min-width:0;width:100%;font-size:11px;padding:2px 4px">${Object.entries(ST).map(([k,[l]])=>`<option value="${k}" ${(t.stages[s]||"none")===k?"selected":""}>${l}</option>`).join("")}</select><span class="stxt" style="font-size:11px;color:var(--muted)">${ST[t.stages[s]||"none"][0]}</span></div>`).join("")}</div>`).join("");
   const docs=DOCS.map(d=>{const u=(t.docLinks||{})[d]||"";return u&&!DOC_EDIT?`<a class="doc linked" href="${esc(u)}" target="_blank" rel="noopener" style="display:block">${esc(d)}</a>`:`<div class="doc ${u?"linked":""}"><div>${esc(d)}</div>${DOC_EDIT?`<input type="url" placeholder="Paste link" value="${esc(u)}" data-d="${esc(d)}" onchange="setDocLink('${t.id}',this.dataset.d,this.value)" style="width:100%;font-size:11px;padding:3px;margin-top:4px">`:""}</div>`}).join("");
   document.getElementById("teamModal").innerHTML=`
     <button class="close" onclick="closeAll()">&times;</button>
@@ -300,6 +301,8 @@ function previewPhoto(inp){
 function setDocLink(id,d,v){const t=TEAMS.find(x=>x.id===id);if(!t)return;t.docLinks=t.docLinks||{};t.docLinks[d]=v.trim();render();openTeam(id);}
 let DOC_EDIT=false;
 function toggleDocEdit(id){DOC_EDIT=!DOC_EDIT;openTeam(id);}
+function editLabel(btn){const sp=btn.closest('.stage').querySelector('[data-lbl]');sp.contentEditable='true';sp.focus();}
+function saveLabel(id,el){el.contentEditable='false';const t=TEAMS.find(x=>x.id===id);if(!t||!canEditTeam(id))return;const key=el.dataset.lbl;const v=el.textContent.trim()||key;t.labels=t.labels||{};t.labels[key]=v;render();openTeam(id);}
 function openImport(){document.getElementById("impOv").classList.add("open");document.getElementById("impMsg").textContent="";}
 function closeAll(){document.querySelectorAll(".overlay").forEach(o=>o.classList.remove("open"));}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll();});
