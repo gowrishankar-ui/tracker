@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Signed in AND has a profile in the users collection
+    function signedIn() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function isAdmin() {
+      return signedIn() && profile().role == 'admin';
+    }
+
+    // User profiles: each user can read their own; only admins read all.
+    // Nobody can change profiles from the app. Admins edit them in the console.
+    match /users/{uid} {
+      allow read: if request.auth != null
+        && (request.auth.uid == uid || isAdmin());
+      allow write: if false;
+    }
+
+    // Team records: anyone can read (view-only dashboard).
+    // Only signed-in admins, or SPOCs for their own teams, can write.
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        || (signedIn() && teamId in profile().teams);
+      allow delete: if false;
+    }
+  }
+}

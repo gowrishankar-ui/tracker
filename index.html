@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ProtoSEM Forge | Project Status Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+  <style>
+    :root {
+      --red: #ED1C24;
+      --green: #2E7D32;
+      --teal: #00897B;
+      --blue: #3B4FC4;
+      --amber: #F2B705;
+      --orange: #E8572A;
+      --grey: #8A8A8A;
+      --panel: #F3F3F3;
+      --ink: #222;
+      --muted: #666;
+      color-scheme: light
+    }
+
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Calibri, Helvetica, Arial, sans-serif;
+      background: var(--bg, #fff);
+      color: var(--ink);
+      font-size: 14px;
+      padding: 0 0 env(safe-area-inset-bottom, 0px)
+    }
+
+
+    header {
+      padding: 20px 28px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      justify-content: space-between
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--red);
+      font-size: 26px;
+      line-height: 1.2
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 28px 16px
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 8px 10px;
+      background: var(--bg, #fff);
+      color: var(--ink)
+    }
+
+    input[type=search] {
+      min-width: 240px;
+      flex: 1;
+      max-width: 360px
+    }
+
+    button {
+      cursor: pointer;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      font-weight: 600
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid #ccc
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      padding: 0 28px 16px
+    }
+
+    .stat {
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 14px 16px
+    }
+
+    .stat b {
+      display: block;
+      font-size: 24px;
+      color: var(--red)
+    }
+
+    .stat span {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      padding: 0 28px 32px
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color .15s
+    }
+
+    .card:hover,
+    .card:focus {
+      border-color: var(--red);
+      outline: none
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px
+    }
+
+    .tid {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: .05em
+    }
+
+    .title {
+      font-weight: 700;
+      color: var(--red);
+      font-size: 15px;
+      margin: 6px 0 4px;
+      line-height: 1.3
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px
+    }
+
+    .meta b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .pill {
+      display: inline-block;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 12px;
+      letter-spacing: .03em;
+      white-space: nowrap
+    }
+
+    .bar {
+      height: 8px;
+      background: #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0 4px
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--green)
+    }
+
+    .pct {
+      font-size: 12px;
+      color: var(--red);
+      font-weight: 600
+    }
+
+    .mini {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin: 10px 0
+    }
+
+    .dot {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex: none
+    }
+
+    .dot.ring {
+      border: 2px solid var(--grey);
+      background: transparent;
+      box-sizing: border-box
+    }
+
+    .now {
+      font-size: 12.5px;
+      margin-top: 8px;
+      line-height: 1.4
+    }
+
+    .now b {
+      color: var(--red)
+    }
+
+    .empty {
+      opacity: .7
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 12px;
+      overflow: auto;
+      z-index: 50
+    }
+
+    .overlay.open {
+      display: flex
+    }
+
+    .modal {
+      background: var(--bg, #fff);
+      color: var(--ink);
+      border-radius: 12px;
+      width: min(1100px, 100%);
+      padding: 22px 24px;
+      position: relative
+    }
+
+    .close {
+      position: absolute;
+      right: 14px;
+      top: 12px;
+      background: transparent;
+      color: var(--ink);
+      font-size: 22px;
+      padding: 0 8px
+    }
+
+    .modal h2 {
+      color: var(--red);
+      margin: 0 0 6px;
+      font-size: 22px;
+      padding-right: 40px;
+      line-height: 1.25
+    }
+
+    .facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      margin: 12px 0 16px;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .facts b {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: start
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+      overflow-wrap: anywhere
+    }
+
+    .panel h4 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      color: var(--red);
+      letter-spacing: .06em;
+      text-transform: uppercase
+    }
+
+    .big {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap
+    }
+
+    .big div {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--red)
+    }
+
+    .big small {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400
+    }
+
+    .lines p {
+      margin: 0 0 6px;
+      font-size: 12px;
+      line-height: 1.35
+    }
+
+    .lines b {
+      color: var(--red)
+    }
+
+    .phases {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px
+    }
+
+    .phase h5 {
+      margin: 0 0 8px;
+      color: var(--red);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    .stage {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 8px;
+      background: var(--bg, #fff);
+      border-radius: 6px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      min-width: 0
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .docs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px
+    }
+
+    .doc {
+      border: 1.5px dashed #999;
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink);
+      font-weight: 400;
+      text-decoration: none
+    }
+
+    .doc.linked {
+      border: 1.5px solid var(--red);
+      color: var(--red);
+      font-weight: 600;
+      text-decoration: underline
+    }
+
+    .doc.miss {
+      border: 1.5px dashed #999;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 400
+    }
+
+    .foot {
+      color: var(--muted);
+      font-size: 12px;
+      padding: 0 28px 24px
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      font-family: Consolas, monospace;
+      font-size: 12px
+    }
+
+    .msg {
+      font-size: 12px;
+      margin-top: 8px
+    }
+
+    #teamModal .hdr>label {
+      grid-column: 2;
+      grid-row: 1 / span 3
+    }
+
+    #teamModal .hdr>*:not(label) {
+      grid-column: 1
+    }
+
+    .readonly select[data-s],
+    .readonly input[type=url],
+    .readonly button[onclick^="editTeam"],
+    .readonly button[onclick="openImport()"],
+    .readonly button[onclick^="toggleDocEdit"] {
+      display: none !important
+    }
+
+    @media (max-width:900px) {
+      .panels {
+        grid-template-columns: 1fr
+      }
+
+      .phases {
+        grid-template-columns: 1fr
+      }
+
+      #teamModal {
+        aspect-ratio: auto
+      }
+
+      #teamModal .hdr {
+        grid-template-columns: 1fr
+      }
+
+      #teamModal .hdr>label {
+        grid-column: 1;
+        grid-row: auto
+      }
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+  <div id="login"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:100;padding:12px">
+    <div class="modal" style="width:min(380px,92%)">
+      <h2>Sign in</h2>
+      <p class="sub" style="font-size:13px">Use the email and password your admin gave you.</p><input id="em"
+        type="email" placeholder="Email" autocomplete="username" style="width:100%;margin:6px 0"><input id="pw"
+        type="password" placeholder="Password" autocomplete="current-password" style="width:100%;margin:6px 0">
+      <div class="row" style="justify-content:space-between;margin-top:8px"><button class="ghost"
+          onclick="resetPw()">Forgot password</button><button class="ghost"
+          onclick="document.getElementById('login').style.display='none'">Cancel</button> <button
+          onclick="signIn()">Sign in</button></div>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+  </div>
+
+  <div id='dash'>
+    <header>
+      <div>
+        <h1 contenteditable="true" spellcheck="false">ASADI &amp; PRISM MUP Tracker</h1>
+        <div class="sub" contenteditable="true" spellcheck="false">ProtoSEM 1.18 | Forge | Consolidated project status
+          for all teams and SPOCs</div>
+      </div>
+      <div class="row" style="gap:8px"><span id="access" style="font-size:12px;color:var(--muted)"></span> <button
+          id="authBtn" class="ghost" onclick="authClick()" style="padding:4px 8px">Sign in to edit</button>
+        <button onclick="generatePPT()">Generate PPT</button> <span id="pptMsg"
+          style="font-size:12px;color:var(--muted)"></span> <button class="ghost" onclick="openImport()">Load SPOC
+          updates (JSON)</button>
+      </div>
+    </header>
+
+    <div id="chartBox" style="padding:0 28px 16px"></div>
+
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Search team, anchor, SPOC..." oninput="render()">
+      <select id="sf" onchange="render()">
+        <option value="">All SPOCs</option>
+      </select>
+      <select id="f" onchange="render()">
+        <option value="">All statuses</option>
+        <option value="on_track">On track</option>
+        <option value="at_risk">At risk</option>
+        <option value="blocked">Blocked</option>
+        <option value="not_started">Not started</option>
+      </select>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="foot" id="foot"></div>
+
+  </div>
+  <div class="overlay" id="teamOv" onclick="if(event.target===this)closeAll()">
+    <div class="modal" id="teamModal"></div>
+  </div>
+
+  <div class="overlay" id="impOv" onclick="if(event.target===this)closeAll()">
+    <div class="modal" style="width:min(720px,100%)">
+      <button class="close" onclick="closeAll()">&times;</button>
+      <h2>Load SPOC updates</h2>
+      <p class="sub" style="font-size:13px;color:var(--muted)">Paste a JSON array of team records. Records match an
+        existing team by <code>id</code> and replace it; new ids are added. Each SPOC's update can be pasted here, or
+        the list can be collected centrally and pasted once.</p>
+      <textarea id="json"
+        placeholder='[{"id":"T02","name":"...","spoc":"...","status":"on_track","stages":{"Initial Meet":"done"},"docs":["MoM"]}]'></textarea>
+      <div class="row" style="margin-top:10px;justify-content:flex-end;gap:8px">
+        <button class="ghost" onclick="closeAll()">Cancel</button>
+        <button onclick="applyImport()">Apply</button>
+      </div>
+      <div class="msg" id="impMsg"></div>
+    </div>
+  </div>
+
+  <script>
+    let READY = false, PROFILE = null, FS = null, LISTENING = false;
+    const FIREBASE_CONFIG = { apiKey: 'AIzaSyDGYvZLwlaVJAvc_6sIoBZn-mPSPn2lV3c', authDomain: 'tracker-f5cf8.firebaseapp.com', projectId: 'tracker-f5cf8', storageBucket: 'tracker-f5cf8.firebasestorage.app', messagingSenderId: '362481539711', appId: '1:362481539711:web:73d29d950f5d5ae690bd4a' };
+    const LAST = {}, QUEUE = {};
+    function recOf(t) { const r = Object.assign({}, t); delete r.status; delete r.photo; return r; }
+    function showAccess(m) { const a = document.getElementById('access'); if (a) a.textContent = m; }
+    function canEditTeam(id) { return !!PROFILE && (PROFILE.role === 'admin' || (PROFILE.teams || []).includes(id)); }
+    function saveIfChanged(t) { if (!READY || !FS || !canEditTeam(t.id)) return; const r = recOf(t); const j = JSON.stringify(r); if (LAST[t.id] === j) return; LAST[t.id] = j; QUEUE[t.id] = (QUEUE[t.id] || Promise.resolve()).then(() => FS.collection('teams').doc(t.id).set(r)).catch(e => showAccess('Could not save ' + t.id + ': ' + (e.message || e.code))); }
+    function signIn() { const e = document.getElementById('em').value.trim(), pw = document.getElementById('pw').value, m = document.getElementById('loginMsg'); firebase.auth().signInWithEmailAndPassword(e, pw).then(() => { m.textContent = ''; }).catch(err => { m.textContent = 'Sign-in failed: ' + (err.message || err.code); }); }
+    function resetPw() { const e = document.getElementById('em').value.trim(), m = document.getElementById('loginMsg'); if (!e) { m.textContent = 'Enter your email first.'; return; } firebase.auth().sendPasswordResetEmail(e).then(() => { m.textContent = 'Reset email sent. Check your inbox.'; }).catch(err => { m.textContent = err.message; }); }
+    function signOut() { firebase.auth().signOut(); }
+    function showLogin() { document.getElementById('login').style.display = 'flex'; }
+    function authClick() { if (firebase.auth().currentUser) { signOut(); } else { showLogin(); } }
+    function startAuth() {
+      firebase.initializeApp(FIREBASE_CONFIG); FS = firebase.firestore();
+      document.body.classList.add('readonly');
+      showAccess('View only. Sign in to edit.');
+      FS.collection('teams').onSnapshot(sn => { sn.docs.forEach(d => { if (!d.exists) return; const data = JSON.parse(JSON.stringify(d.data())); let t = TEAMS.find(x => x.id === d.id); if (t) Object.assign(t, data); else { t = data; TEAMS.push(t); } LAST[d.id] = JSON.stringify(recOf(t)); }); READY = true; render(); }, e => showAccess('Live data unavailable: ' + e.message));
+      firebase.auth().onAuthStateChanged(async u => {
+        const btn = document.getElementById('authBtn');
+        if (!u) { PROFILE = null; document.body.classList.add('readonly'); btn.textContent = 'Sign in to edit'; showAccess('View only. Sign in to edit.'); return; }
+        btn.textContent = 'Sign out';
+        document.getElementById('login').style.display = 'none';
+        const snap = await FS.collection('users').doc(u.uid).get();
+        if (!snap.exists) { PROFILE = null; document.body.classList.add('readonly'); showAccess(u.email + ': signed in, no edit access. Ask the admin.'); return; }
+        PROFILE = snap.data();
+        document.body.classList.toggle('readonly', PROFILE.role !== 'admin' && !(PROFILE.teams || []).length);
+        showAccess((PROFILE.role === 'admin' ? 'Admin' : 'SPOC') + ': ' + u.email);
+        render();
+      });
+    }
+    const _openTeam = openTeam;
+    openTeam = function (id) { _openTeam(id); document.getElementById('teamModal').classList.toggle('readonly', !canEditTeam(id)); };
+    window.addEventListener('load', startAuth);
+    const PHASES = [
+      { name: "Kickoff", items: ["Initial Meet", "MoM"] },
+      { name: "Concept", items: ["Challenge Brief", "Customer Discovery", "Concept Generation", "Concept Assessment", "MUP Tech Canvas"] },
+      { name: "Planning", items: ["SRD", "SoW", "Project Timeline", "Progress Tracker"] },
+      { name: "Build & Validate", items: ["Work Slide", "Mechanical", "Electrical & Electronics", "Source Code / Repo", "BoM"] },
+      { name: "Showcase", items: ["Pitch Presentation", "MUP Compendium", "Closure Report"] }
+    ];
+    const ALL = PHASES.flatMap(p => p.items);
+    const DOCS = ["Challenge Brief", "Customer Discovery", "Concept Generation", "Concept Assessment", "Tech Canvas", "SRD", "SoW", "Project Timeline", "Progress Tracker", "MoM", "Work Slide", "BoM", "Source Repo", "Pitch Deck", "Compendium", "Closure Report"];
+    const ST = { done: ["Done", "#2E7D32"], startup: ["Startup approved", "#00897B"], mentor: ["Mentor approved", "#3B4FC4"], pending: ["Approval pending", "#F2B705"], progress: ["In progress", "#E8572A"], none: ["Not started", null] };
+    const TS = { on_track: ["ON TRACK", "#2E7D32"], at_risk: ["AT RISK", "#F2B705"], blocked: ["BLOCKED", "#ED1C24"], not_started: ["NOT STARTED", "#8A8A8A"] };
+
+    // ---- Team data: replace or extend via the "Load SPOC updates" panel or edit here ----
+    const TEAM1_STAGES = { "Initial Meet": "done", "MoM": "done", "Challenge Brief": "done", "Customer Discovery": "done", "Concept Generation": "done", "Concept Assessment": "progress", "MUP Tech Canvas": "progress", "SRD": "done", "SoW": "done", "Project Timeline": "done", "Progress Tracker": "done", "Work Slide": "progress", "Mechanical": "progress", "Electrical & Electronics": "progress", "Source Code / Repo": "progress", "BoM": "progress", "Pitch Presentation": "progress", "MUP Compendium": "none", "Closure Report": "none" };
+    let TEAMS = [{
+      id: "T01", name: "AI-Based Automated Vision Inspection System for Micro Gold Balls", category: "MUP",
+      anchor: "IQube KCT / Emerald Jewellery", spoc: "Suriya", mentor: "Dr. S. Sasikala (ECE)", challenge: 1,
+      visionary: "R Sudharshan", members: [["Satheesh B", "Hacker"], ["Sudhiksha G", "Designer"], ["Mithra Ravi", "Designer"], ["Hariprasad V", "Designer"]],
+      status: "on_track", stages: TEAM1_STAGES,
+      docs: ["Challenge Brief", "Customer Discovery", "Concept Generation", "Concept Assessment", "Tech Canvas", "SRD", "SoW", "Project Timeline", "Progress Tracker", "MoM"],
+      metrics: [["20,000", "balls produced / day"], ["10,000", "inspected manually"], ["14.5 hrs", "manual QC / day"]],
+      target: "100% inspection of 1.5 to 3.0 mm balls with automatic pass/reject sorting.",
+      current: "Solution concept proposed to the anchor industry, awaiting reply from Emerald on way forward.",
+      lastMilestone: "Progress tracker completion, iteration of proof of concept.",
+      nextGoal: "BoM finalisation, PoC building.",
+      blocker: "Need gold ball samples from Emerald; need to visit their shop floor for better understanding and dataset.",
+      updated: "2026-10-29"
+    }];
+    const TITLES = ["Precision Crop & Weed Identification for Automated Agricultural Weeding", "Electromagnetic Lift-Assisted Transport for Material Handling", "Non-Invasive Fabric Identification for Textile Recycling", "Gas Emission Monitoring for Thermal Conversion & Combustion Equipment", "Intelligent Autofocus & Stabilized Tracking for Surveillance Systems", "High-Speed Motors for Robotics & Industrial Automation", "Multilingual Customer Interaction Intelligence for Automotive Service", "Smart IoT based Silage quality monitoring system", "Non-Invasive Methane Monitoring for Livestock & Dairy Management", "Modular Retrofit Electric Drive System for Airport Wheelchairs", "Intelligent Fault Diagnosis for Legacy Manufacturing Equipment", "Offline Women Safety & Emergency Alert System", "Fabrication Operations Management for RFQ-to-Production Workflows", "AI-Assisted Contract Drafting & Review for Indian Startups & MSMEs"];
+    const SPOCS = ["Dharshan", "Sabareesh", "Muhesh", "Muhesh", "Dharshan", "Bramma", "Gowri", "Dharshan", "Bramma", "Muhesh", "Gowri", "Suriya", "Suriya", "Gowri"];
+    for (let i = 2; i <= 15; i++) {
+      const id = "T" + String(i).padStart(2, "0");
+      TEAMS.push({
+        id, name: TITLES[i - 2], category: "", anchor: "To be assigned", spoc: SPOCS[i - 2], mentor: "", challenge: "",
+        visionary: "", members: [], status: "not_started", stages: {}, docs: [], metrics: [], target: "", current: "", lastMilestone: "", nextGoal: "", blocker: "", updated: ""
+      });
+    }
+
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const pill = (k, map) => { const [t, c] = map[k] || map.not_started; return `<span class="pill" style="background:${c || "#8A8A8A"}">${t}</span>` };
+    const dot = s => { const c = ST[s]?.[1]; return c ? `<span class="dot" style="background:${c}" title="${ST[s][0]}"></span>` : `<span class="dot ring" title="Not started"></span>` };
+    const doneCount = t => ALL.filter(s => t.stages[s] === "done").length;
+    const pct = t => Math.round(doneCount(t) / ALL.length * 100);
+
+    function renderStats() {
+      const n = TEAMS.length, c = k => TEAMS.filter(t => t.status === k).length;
+      const avg = Math.round(TEAMS.reduce((a, t) => a + pct(t), 0) / n);
+      const docs = TEAMS.reduce((a, t) => a + DOCS.filter(d => t.docs.includes(d) || (t.docLinks || {})[d]).length, 0);
+      const sEl = document.getElementById("stats"); if (sEl) sEl.innerHTML = [
+        [n, "Teams"], [c("on_track"), "On track"], [c("at_risk"), "At risk"], [c("blocked"), "Blocked"], [avg + "%", "Avg progress"], [docs, "Documents submitted"]
+      ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+    }
+
+    function autoStatus(t) { if (t.override) return t.override; if (!ALL.some(s => t.stages[s] && t.stages[s] !== "none")) return "not_started"; return doneCount(t) < 8 ? "at_risk" : "on_track"; }
+    function render() {
+      TEAMS.forEach(t => t.status = autoStatus(t));
+      TEAMS.forEach(saveIfChanged);
+      const sel = document.getElementById("sf"); const cur = sel.value; const names = [...new Set(TEAMS.map(t => t.spoc))].filter(n => n && n !== "To be assigned").sort(); sel.innerHTML = '<option value="">All SPOCs</option>' + names.map(n => `<option value="${esc(n)}" ${n === cur ? "selected" : ""}>${esc(n)}</option>`).join(''); const sp = sel.value;
+      renderStats();
+      const q = document.getElementById("q").value.trim().toLowerCase(), f = document.getElementById("f").value;
+      const list = TEAMS.filter(t => (!f || t.status === f) && (!sp || t.spoc === sp) && (!q || [t.name, t.anchor, t.spoc, t.id].join(" ").toLowerCase().includes(q)));
+      document.getElementById("grid").innerHTML = list.map(t => {
+        const p = pct(t);
+        return `<div class="card ${t.status === "not_started" ? "empty" : ""}" tabindex="0" onclick="openTeam('${t.id}')" onkeydown="if(event.key==='Enter')openTeam('${t.id}')">
+      <div class="row"><span class="tid">${t.id}${t.category ? " | " + esc(t.category) : ""}</span>${pill(t.status, TS)}</div>
+      <div class="title">${esc(t.name)}</div>
+      <div class="meta"><b>Anchor:</b> ${esc(t.anchor)}<br><b>SPOC:</b> ${esc(t.spoc)}${t.mentor ? "<br><b>Mentor:</b> " + esc(t.mentor) : ""}</div>
+      <div class="pct">${doneCount(t)} of ${ALL.length} stages done (${p}%)</div>
+      <div class="bar"><i style="width:${p}%"></i></div>
+      <div class="mini">${ALL.map(s => dot(t.stages[s])).join("")}</div>
+      ${t.current ? `<div class="now"><b>Now:</b> ${esc(t.current)}</div>` : ""}
+      ${t.blocker ? `<div class="now"><b>Blocker:</b> ${esc(t.blocker)}</div>` : ""}
+    </div>`}).join("") || `<div class="stat">No teams match the filter.</div>`;
+      document.getElementById("foot").textContent = "Showing " + list.length + " of " + TEAMS.length + " teams. Click a card for the full project view.";
+    }
+
+    function openTeam(id) {
+      const t = TEAMS.find(x => x.id === id); if (!t) return;
+      const p = pct(t);
+      const phases = PHASES.map(ph => `<div class="phase"><h5>${ph.name}</h5>${ph.items.map(s => `<div class="stage">${dot(t.stages[s])}<span style="flex:1">${esc(s)}</span><select data-s="${esc(s)}" onchange="setStage('${t.id}',this.dataset.s,this.value)" style="flex:1 1 100%;min-width:0;width:100%;font-size:11px;padding:2px 4px">${Object.entries(ST).map(([k, [l]]) => `<option value="${k}" ${(t.stages[s] || "none") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>`).join("")}</div>`).join("");
+      const docs = DOCS.map(d => { const u = (t.docLinks || {})[d] || ""; return u && !DOC_EDIT ? `<a class="doc linked" href="${esc(u)}" target="_blank" rel="noopener" style="display:block">${esc(d)}</a>` : `<div class="doc ${u ? "linked" : ""}"><div>${esc(d)}</div>${DOC_EDIT ? `<input type="url" placeholder="Paste link" value="${esc(u)}" data-d="${esc(d)}" onchange="setDocLink('${t.id}',this.dataset.d,this.value)" style="width:100%;font-size:11px;padding:3px;margin-top:4px">` : ""}</div>` }).join("");
+      document.getElementById("teamModal").innerHTML = `
+    <button class="close" onclick="closeAll()">&times;</button>
+    <div class="hdr" style="display:grid;grid-template-columns:minmax(0,1fr) 240px;column-gap:14px;row-gap:6px;padding-right:40px;align-items:start"><label style="position:relative;width:240px;height:140px;flex:none;border:2px dashed #999;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--muted);cursor:pointer;overflow:hidden"><span ${PHOTOS[t.id] ? 'style="display:none"' : ''}>Click to insert team photo</span>${PHOTOS[t.id] ? `<img src="${PHOTOS[t.id]}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">` : ''}<input type="file" accept="image/*" style="display:none" onchange="previewPhoto(this)"></label><div style="flex:1;display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-start;align-items:center"><span class="tid">${t.id}</span>${pill(t.status, TS)}<span class="pct">${p}% | ${doneCount(t)} of ${ALL.length} stages done</span></div>
+    <h2>${esc(t.name)}</h2>
+    <div class="facts">
+      <div><b>${esc(t.category) || "-"}</b>Category</div>
+      <div><b>${esc(t.anchor)}</b>Anchor (startup / industry)</div>
+      <div><b>${esc(t.spoc)}</b>Forge SPOC</div>
+      <div><b>${esc(t.mentor) || "-"}</b>Faculty mentor</div>
+      <div><b>${esc(t.challenge) || "-"}</b>Challenge #</div>
+      <div><b>${esc(t.updated) || "-"}</b>Last updated</div><button class="ghost" style="align-self:center" onclick="editTeam('${t.id}')">Edit team</button>
+    </div>
+    </div><div class="panels">
+      <div class="panel"><h4>The challenge</h4>
+        <div class="big">${t.metrics.map(([v, l]) => `<div>${esc(v)}<small>${esc(l)}</small></div>`).join("") || "<small>Not submitted</small>"}</div>
+        ${t.target ? `<p style="font-size:13px;margin:12px 0 0"><b>Target:</b> ${esc(t.target)}</p>` : ""}
+      </div>
+      <div class="panel"><h4>Team</h4>
+        ${t.visionary ? `<p style="margin:0 0 8px"><b>Visionary:</b> ${esc(t.visionary)}</p>` : ""}
+        ${t.members.map(([n, r]) => `<div style="font-size:13px"><b>${esc(n)}</b> ${esc(r)}</div>`).join("") || "<small>No members submitted</small>"}
+      </div>
+      <div class="panel"><h4>Now &amp; next</h4><div class="lines">
+        ${t.current ? `<p><b>Current stage:</b> ${esc(t.current)}</p>` : ""}
+        ${t.lastMilestone ? `<p><b>Last milestone:</b> ${esc(t.lastMilestone)}</p>` : ""}
+        ${t.nextGoal ? `<p><b>Next goal:</b> ${esc(t.nextGoal)}</p>` : ""}
+        ${t.blocker ? `<p><b>Blocker / support needed:</b> ${esc(t.blocker)}</p>` : ""}
+        ${!t.current && !t.blocker ? "<p>No update submitted yet.</p>" : ""}
+      </div></div>
+    </div>
+    <div class="phases">${phases}</div>
+    <div class="panel"><h4>Documents</h4><div class="docs">${docs}<button class="ghost" onclick="toggleDocEdit('${t.id}')" style="min-height:44px">${DOC_EDIT ? "Done" : "Edit"}</button></div></div>`;
+      document.getElementById("teamOv").classList.add("open");
+    }
+
+    function setStage(id, stage, val) { const t = TEAMS.find(x => x.id === id); if (!t) return; t.stages[stage] = val; render(); openTeam(id); }
+    function editTeam(id) { const t = TEAMS.find(x => x.id === id); if (!t) return; const f = (k, l, v) => `<label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px">${l}<input data-k="${k}" value="${esc(v)}" style="width:100%;margin-top:3px"></label>`; document.getElementById("teamModal").innerHTML = `<button class="close" onclick="closeAll()">&times;</button><h2>Edit ${t.id}</h2>${f("name", "Project title", t.name)}${f("category", "Category", t.category)}${f("anchor", "Anchor (startup / industry)", t.anchor)}${f("spoc", "Forge SPOC", t.spoc)}${f("mentor", "Faculty mentor", t.mentor)}${f("visionary", "Visionary", t.visionary)}${f("challenge", "Challenge #", t.challenge)}${f("target", "Target", t.target)}<label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px">Challenge figures (one per line: value | label)<textarea data-k="metricsText" style="width:100%;min-height:70px;margin-top:3px">${t.metrics.map(([v, l]) => esc(v) + " | " + esc(l)).join("\n")}</textarea></label>${f("current", "Current stage", t.current)}${f("lastMilestone", "Last milestone", t.lastMilestone)}${f("nextGoal", "Next goal", t.nextGoal)}${f("blocker", "Blocker / support needed", t.blocker)}${f("updated", "Last updated (YYYY-MM-DD)", t.updated)}<label style="display:block;font-size:12px;color:var(--muted);margin-bottom:8px">Team status<select data-k="override" style="width:100%;margin-top:3px"><option value="">Auto (from stages and blocker)</option>${Object.entries(TS).map(([k, [l]]) => `<option value="${k}" ${t.override === k ? "selected" : ""}>${l}</option>`).join("")}</select></label><div class="row" style="justify-content:flex-end;gap:8px"><button class="ghost" onclick="openTeam('${t.id}')">Cancel</button><button onclick="saveTeam('${t.id}')">Save</button></div>`; document.getElementById("teamOv").classList.add("open"); }
+    function saveTeam(id) { const t = TEAMS.find(x => x.id === id); if (!t) return; document.querySelectorAll("#teamModal [data-k]").forEach(el => { if (el.dataset.k === "metricsText") { t.metrics = el.value.split("\n").map(l => l.split("|").map(s => s.trim())).filter(a => a[0]); } else t[el.dataset.k] = el.value; }); render(); openTeam(id); }
+    let PHOTOS = {};
+    function previewPhoto(inp) { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = e => { const l = inp.parentNode; let img = l.querySelector("img"); if (!img) { img = document.createElement("img"); img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover"; l.appendChild(img); } img.src = e.target.result; PHOTOS[inp.closest('#teamModal').querySelector('.tid').textContent.trim()] = e.target.result; l.querySelector("span").style.display = "none"; }; r.readAsDataURL(f); }
+    function setDocLink(id, d, v) { const t = TEAMS.find(x => x.id === id); if (!t) return; t.docLinks = t.docLinks || {}; t.docLinks[d] = v.trim(); render(); openTeam(id); }
+    let DOC_EDIT = false;
+    function toggleDocEdit(id) { DOC_EDIT = !DOC_EDIT; openTeam(id); }
+    function openImport() { document.getElementById("impOv").classList.add("open"); document.getElementById("impMsg").textContent = ""; }
+    function closeAll() { document.querySelectorAll(".overlay").forEach(o => o.classList.remove("open")); }
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeAll(); });
+
+    function applyImport() {
+      const msg = document.getElementById("impMsg");
+      try {
+        const data = JSON.parse(document.getElementById("json").value);
+        const arr = Array.isArray(data) ? data : [data];
+        let added = 0, updated = 0;
+        arr.forEach(r => {
+          if (!r.id) throw new Error("Each record needs an id, for example T02.");
+          const base = TEAMS.find(t => t.id === r.id);
+          const rec = {
+            id: r.id, name: r.name ?? base?.name ?? r.id, category: r.category ?? "", anchor: r.anchor ?? "", spoc: r.spoc ?? "", mentor: r.mentor ?? "",
+            challenge: r.challenge ?? "", visionary: r.visionary ?? "", members: r.members ?? [], status: r.status ?? "not_started", override: r.override ?? base?.override ?? null,
+            stages: r.stages ?? {}, docs: r.docs ?? [], metrics: r.metrics ?? [], target: r.target ?? "", current: r.current ?? "",
+            lastMilestone: r.lastMilestone ?? "", nextGoal: r.nextGoal ?? "", blocker: r.blocker ?? "", updated: r.updated ?? ""
+          };
+          if (base) { Object.assign(base, rec); updated++ } else { TEAMS.push(rec); added++ }
+        });
+        msg.style.color = "var(--green)";
+        msg.textContent = `Applied: ${updated} updated, ${added} added.`;
+        render();
+        setTimeout(closeAll, 900);
+      } catch (err) { msg.style.color = "var(--red)"; msg.textContent = "Could not apply: " + err.message; }
+    }
+
+    render();
+    const CHARTS = { status: ['Team status', () => Object.entries(TS).map(([k, [l, c]]) => [l, TEAMS.filter(t => t.status === k).length, TEAMS.length, c || '#8A8A8A'])], progress: ['Progress by team', () => TEAMS.map(t => [t.id, doneCount(t), ALL.length, '#2E7D32'])], stages: ['Stage completion', () => ALL.map(s => [s, TEAMS.filter(t => t.stages[s] === 'done').length, TEAMS.length, '#2E7D32'])], docs: ['Documents submitted', () => TEAMS.map(t => [t.id, DOCS.filter(d => t.docs.includes(d) || (t.docLinks || {})[d]).length, DOCS.length, '#ED1C24'])] };
+    function showChart(k) { render(); const [title, data] = CHARTS[k]; document.getElementById('chartBox').innerHTML = `<div class='panel'><h4>${title}</h4>${data().map(([l, v, m, c]) => `<div style='display:grid;grid-template-columns:minmax(0,150px) 1fr 60px;gap:8px;align-items:center;font-size:12px;margin:6px 0'><span style='overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>${esc(l)}</span><div style='background:#ddd;height:12px;border-radius:6px;overflow:hidden'><i style='display:block;height:100%;width:${m ? Math.round(v / m * 100) : 0}%;background:${c}'></i></div><b>${v} / ${m}</b></div>`).join('')}</div>`; document.getElementById('landing').style.display = 'none'; document.getElementById('dash').style.display = 'block'; window.scrollTo(0, 0); }
+    function showLanding() { document.getElementById('dash').style.display = 'none'; document.getElementById('landing').style.display = 'block'; }
+    const tm = document.getElementById('teamModal');
+    function fitTeam() { return; if (innerWidth < 900) { tm.style.width = ''; tm.style.height = ''; tm.style.overflow = 'visible'; const w0 = tm.querySelector('#teamInner'); if (w0) { w0.style.transform = 'none'; w0.style.width = ''; } return; } tm.style.overflow = 'hidden'; let w = tm.querySelector('#teamInner'); if (!w) { w = document.createElement('div'); w.id = 'teamInner'; while (tm.firstChild) w.appendChild(tm.firstChild); tm.appendChild(w); } const W = Math.min(1280, innerWidth - 24); tm.style.width = W + 'px'; const boxH = W * 9 / 16; tm.style.height = boxH + 'px'; const avail = boxH - 32; w.style.transform = 'none'; w.style.width = (W - 32) + 'px'; const H = w.scrollHeight; const z = Math.min(1, avail / H); w.style.width = ((W - 32) / z) + 'px'; w.style.transform = 'scale(' + z + ')'; w.style.transformOrigin = 'top left'; }
+    window.addEventListener('resize', () => { if (tm.parentElement.classList.contains('open')) fitTeam(); });
+    new MutationObserver(() => { if (document.getElementById('teamOv').classList.contains('open')) fitTeam(); }).observe(document.getElementById('teamOv'), { attributes: true });
+    new MutationObserver(() => { if (tm.parentElement.classList.contains('open') && !tm.querySelector('#teamInner')) fitTeam(); }).observe(tm, { childList: true });
+    function loadPpt() { return new Promise((res, rej) => { if (window.PptxGenJS) return res(); const srcs = ['https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js', 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js']; let i = 0; const go = () => { if (i >= srcs.length) return rej(new Error('library')); const sc = document.createElement('script'); sc.src = srcs[i++]; sc.onload = () => window.PptxGenJS ? res() : go(); sc.onerror = go; document.head.appendChild(sc); }; go(); }); }
+    async function generatePPT() {
+      const say = m => { const e = document.getElementById('pptMsg'); if (e) e.textContent = m; };
+      const RED = 'ED1C24', GREEN = '2E7D32', TEAL = '00897B', BLUE = '3B4FC4', AMBER = 'F2B705', ORANGE = 'E8572A', GREY = '8A8A8A', PANEL = 'F3F3F3', INK = '222222', MUTED = '666666';
+      const DOT = { done: GREEN, startup: TEAL, mentor: BLUE, pending: AMBER, progress: ORANGE };
+      const TSC = { on_track: GREEN, at_risk: AMBER, blocked: RED, not_started: GREY };
+      say('Loading PowerPoint library...');
+      try { await loadPpt(); } catch (e) { say('The PowerPoint library could not load. Check your internet connection and try again.'); return; }
+      const dl = { save: async ({ filename, data }) => { const b = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); } };
+
+      say('Building slides...');
+      const p = new PptxGenJS(); p.layout = 'LAYOUT_WIDE';
+      const R = p.shapes.ROUNDED_RECTANGLE, RC = p.shapes.RECTANGLE, OV = p.shapes.OVAL;
+      TEAMS.forEach(t => {
+        const s = p.addSlide(); s.background = { color: 'FFFFFF' };
+        const n = doneCount(t), pc = Math.round(n / ALL.length * 100);
+        const stLabel = (TS[t.status] || TS.not_started)[0], stCol = TSC[t.status] || GREY;
+        s.addText(t.name || t.id, { x: 0.4, y: 0.3, w: 6.0, h: 0.95, fontFace: 'Calibri', fontSize: 24, bold: true, color: RED, valign: 'top', margin: 0 });
+        s.addText(stLabel, { x: 6.7, y: 0.35, w: 2.2, h: 0.45, shape: R, rectRadius: 0.1, fill: { color: stCol }, color: (t.status === 'at_risk' ? INK : 'FFFFFF'), bold: true, fontSize: 13, align: 'center', valign: 'middle' });
+        s.addText(pc + '%  |  ' + n + ' of ' + ALL.length + ' stages done', { x: 6.7, y: 0.9, w: 3.4, h: 0.3, fontSize: 11, bold: true, color: RED, margin: 0 });
+        if (PHOTOS[t.id]) { s.addImage({ data: PHOTOS[t.id], x: 10.4, y: 0.3, w: 2.55, h: 1.5, sizing: { type: 'cover', w: 2.55, h: 1.5 } }); }
+        else { s.addShape(RC, { x: 10.4, y: 0.3, w: 2.55, h: 1.5, fill: { color: 'FFFFFF' }, line: { color: '999999', dashType: 'dash', width: 1 } }); s.addText('Team photo', { x: 10.4, y: 0.3, w: 2.55, h: 1.5, fontSize: 10, color: MUTED, align: 'center', valign: 'middle' }); }
+        const meta = [['CATEGORY', t.category || '-', 0.4, 1.5], ['ANCHOR (STARTUP / INDUSTRY)', t.anchor || '-', 1.9, 4.0], ['FORGE SPOC', t.spoc || '-', 6.1, 1.3], ['FACULTY MENTOR', t.mentor || '-', 7.6, 2.5], ['CHALLENGE #', String(t.challenge || '-'), 10.4, 2.5]];
+        meta.forEach(([k, v, x, w]) => s.addText([{ text: k, options: { fontSize: 8, color: MUTED, bold: true, breakLine: true } }, { text: v, options: { fontSize: 12, bold: true, color: INK } }], { x, y: 1.95, w, h: 0.6, valign: 'top', margin: 0 }));
+        s.addShape(R, { x: 0.4, y: 2.7, w: 4.0, h: 1.9, fill: { color: PANEL }, line: { color: PANEL }, rectRadius: 0.08 });
+        s.addText('THE CHALLENGE', { x: 0.55, y: 2.8, w: 3.7, h: 0.25, fontSize: 9, bold: true, color: RED, margin: 0 });
+        t.metrics.slice(0, 3).forEach(([v, l], i) => s.addText([{ text: v, options: { fontSize: 20, bold: true, color: RED, breakLine: true } }, { text: l || '', options: { fontSize: 8, color: MUTED } }], { x: 0.55 + i * 1.25, y: 3.1, w: 1.2, h: 0.75, valign: 'top', margin: 0 }));
+        s.addText(t.target ? 'Target: ' + t.target : '', { x: 0.55, y: 3.95, w: 3.7, h: 0.55, fontSize: 9, color: INK, valign: 'top', margin: 0 });
+        s.addShape(R, { x: 4.55, y: 2.7, w: 3.6, h: 1.9, fill: { color: PANEL }, line: { color: PANEL }, rectRadius: 0.08 });
+        s.addText('TEAM', { x: 4.7, y: 2.8, w: 3.3, h: 0.25, fontSize: 9, bold: true, color: RED, margin: 0 });
+        s.addText('Visionary: ' + (t.visionary || '-'), { x: 4.7, y: 3.08, w: 3.3, h: 0.3, fontSize: 12, bold: true, color: INK, margin: 0 });
+        const mem = t.members.length ? t.members.map(([nm, r]) => ({ text: nm + '  ' + r, options: { breakLine: true } })) : [{ text: 'No members submitted' }];
+        s.addText(mem, { x: 4.7, y: 3.45, w: 3.3, h: 1.1, fontSize: 10, color: INK, valign: 'top', margin: 0 });
+        s.addShape(R, { x: 8.3, y: 2.7, w: 4.65, h: 1.9, fill: { color: PANEL }, line: { color: PANEL }, rectRadius: 0.08 });
+        s.addText('NOW & NEXT', { x: 8.45, y: 2.8, w: 4.3, h: 0.25, fontSize: 9, bold: true, color: RED, margin: 0 });
+        const nn = [['Current stage: ', t.current], ['Last milestone: ', t.lastMilestone], ['Next goal: ', t.nextGoal], ['Blocker / support needed: ', t.blocker]].flatMap(([k, v]) => [{ text: k, options: { bold: true, color: RED } }, { text: (v || '-'), options: { breakLine: true } }]);
+        s.addText(nn, { x: 8.45, y: 3.08, w: 4.35, h: 1.45, fontSize: 9.5, color: INK, valign: 'top', margin: 0 });
+        s.addShape(R, { x: 0.4, y: 4.75, w: 12.55, h: 2.15, fill: { color: PANEL }, line: { color: PANEL }, rectRadius: 0.06 });
+        s.addText('PROGRESS TRACKER', { x: 0.55, y: 4.82, w: 4, h: 0.25, fontSize: 9, bold: true, color: RED, margin: 0 });
+        [['Done', GREEN], ['Startup approved', TEAL], ['Mentor approved', BLUE], ['Approval pending', AMBER], ['In progress', ORANGE], ['Not started', null]].forEach(([l, c], i) => { const x = 5.4 + i * 1.25; if (c) s.addShape(OV, { x, y: 4.87, w: 0.12, h: 0.12, fill: { color: c }, line: { color: c } }); else s.addShape(OV, { x, y: 4.87, w: 0.12, h: 0.12, fill: { color: 'FFFFFF' }, line: { color: GREY, width: 1 } }); s.addText(l, { x: x + 0.17, y: 4.8, w: 1.1, h: 0.25, fontSize: 8, color: MUTED, margin: 0 }); });
+        PHASES.forEach((ph, i) => {
+          const x = 0.55 + i * 2.5; s.addText(ph.name.toUpperCase(), { x, y: 5.12, w: 2.35, h: 0.25, fontSize: 9, bold: true, color: RED, margin: 0 });
+          ph.items.forEach((it, j) => {
+            const y = 5.42 + j * 0.29; const sv = t.stages[it] || 'none'; const c = DOT[sv];
+            s.addShape(R, { x, y, w: 2.35, h: 0.25, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF' }, rectRadius: 0.04 });
+            if (c) s.addShape(OV, { x: x + 0.08, y: y + 0.07, w: 0.11, h: 0.11, fill: { color: c }, line: { color: c } });
+            else s.addShape(OV, { x: x + 0.08, y: y + 0.07, w: 0.11, h: 0.11, fill: { color: 'FFFFFF' }, line: { color: GREY, width: 1.25 } });
+            s.addText(it, { x: x + 0.25, y, w: 2.05, h: 0.25, fontSize: 9, color: INK, valign: 'middle', margin: 0 });
+          });
+        });
+        DOCS.forEach((d, i) => {
+          const col = i % 8, row = Math.floor(i / 8); const x = 0.4 + col * 1.58, y = 6.98 + row * 0.26; const link = (t.docLinks || {})[d]; const linked = !!(link || t.docs.includes(d));
+          const opts = { x, y, w: 1.5, h: 0.22, shape: RC, fill: { color: 'FFFFFF' }, line: linked ? { color: RED, width: 1 } : { color: '999999', width: 0.75, dashType: 'dash' }, fontSize: 7.5, bold: linked, color: linked ? RED : MUTED, align: 'center', valign: 'middle', margin: 0 };
+          if (link) opts.hyperlink = { url: link };
+          s.addText(d, opts);
+        });
+      });
+      const data = await p.write({ outputType: 'uint8array' });
+      try { await dl.save({ filename: 'ProtoSEM_Status_Report.pptx', data }); say('PowerPoint saved.'); }
+      catch (e) { say(e && e.code === 'declined' ? 'Download cancelled.' : 'Could not save the PowerPoint: ' + ((e && e.message) || 'unknown error')); }
+    }
+  </script>
+</body>
+
+</html>
