@@ -73,6 +73,7 @@ textarea{width:100%;min-height:260px;font-family:Consolas,monospace;font-size:12
 #teamModal .hdr>label{grid-column:2;grid-row:1 / span 3}#teamModal .hdr>*:not(label){grid-column:1}
 .readonly select[data-s],.readonly input[type=url],.readonly button[onclick^="editTeam"],.readonly button[onclick="openImport()"],.readonly button[onclick^="toggleDocEdit"]{display:none!important}
 .readonly input[type=file]{display:none!important}
+.notadmin button[onclick="openImport()"]{display:none!important}
 @media (max-width:900px){.panels{grid-template-columns:1fr}.phases{grid-template-columns:1fr}#teamModal{aspect-ratio:auto}#teamModal .hdr{grid-template-columns:1fr}#teamModal .hdr>label{grid-column:1;grid-row:auto}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -142,6 +143,7 @@ function signOut(){firebase.auth().signOut();}
 function showLogin(){document.getElementById('login').style.display='flex';}
 function authClick(){if(firebase.auth().currentUser){signOut();}else{showLogin();}}
 function startAuth(){
+ document.body.classList.add('notadmin');
  firebase.initializeApp(FIREBASE_CONFIG);FS=firebase.firestore();
  document.body.classList.add('readonly');
  showAccess('View only. Sign in to edit.');
@@ -154,6 +156,7 @@ function startAuth(){
   const snap=await FS.collection('users').doc(u.uid).get();
   if(!snap.exists){PROFILE=null;document.body.classList.add('readonly');showAccess(u.email+': signed in, no edit access. Ask the admin.');return;}
   PROFILE=snap.data();
+  document.body.classList.toggle('notadmin',PROFILE.role!=='admin');
   document.body.classList.toggle('readonly',PROFILE.role!=='admin'&&!(PROFILE.teams||[]).length);
   showAccess((PROFILE.role==='admin'?'Admin':'SPOC')+': '+u.email);
   render();
