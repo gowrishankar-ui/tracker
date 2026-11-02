@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ProtoSEM Forge | Project Status Dashboard</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
 <style>
 :root{--red:#ED1C24;--green:#2E7D32;--teal:#00897B;--blue:#3B4FC4;--amber:#F2B705;--orange:#E8572A;--grey:#8A8A8A;--panel:#F3F3F3;--ink:#222;--muted:#666;color-scheme:light}
@@ -131,7 +137,7 @@ textarea{width:100%;min-height:260px;font-family:Consolas,monospace;font-size:12
 
 <script>
 let READY=false,PROFILE=null,FS=null,LISTENING=false;
-const FIREBASE_CONFIG = { apiKey: 'AIzaSyDGYvZLwlaVJAvc_6sIoBZn-mPSPn2lV3c', authDomain: 'tracker-f5cf8.firebaseapp.com', projectId: 'tracker-f5cf8', storageBucket: 'tracker-f5cf8.firebasestorage.app', messagingSenderId: '362481539711', appId: '1:362481539711:web:73d29d950f5d5ae690bd4a' }; 
+const FIREBASE_CONFIG = { apiKey: 'AIzaSyDGYvZLwlaVJAvc_6sIoBZn-mPSPn2lV3c', authDomain: 'tracker-f5cf8.firebaseapp.com', projectId: 'tracker-f5cf8', storageBucket: 'tracker-f5cf8.firebasestorage.app', messagingSenderId: '362481539711', appId: '1:362481539711:web:73d29d950f5d5ae690bd4a' };
 const LAST={},QUEUE={};
 function recOf(t){const r=Object.assign({},t);delete r.status;r.members=(t.members||[]).map(([n,x])=>({n:n||'',r:x||''}));r.metrics=(t.metrics||[]).map(([v,l])=>({v:v||'',l:l||''}));return r;}
 function showAccess(m){const a=document.getElementById('access');if(a)a.textContent=m;}
