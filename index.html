@@ -212,7 +212,7 @@ for(let i=2;i<=15;i++){
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pill=(k,map)=>{const [t,c]=map[k]||map.not_started;return `<span class="pill" style="background:${c||"#8A8A8A"}">${t}</span>`};
 const dot=s=>{const c=ST[s]?.[1];return c?`<span class="dot" style="background:${c}" title="${ST[s][0]}"></span>`:`<span class="dot ring" title="Not started"></span>`};
-const doneCount=t=>ALL.filter(s=>t.stages[s]==="done").length;
+const doneCount=t=>ALL.filter(s=>t.stages[s]==="done"||t.stages[s]==="startup").length;
 const pct=t=>Math.round(doneCount(t)/ALL.length*100);
 
 function renderStats(){
@@ -330,7 +330,7 @@ function applyImport(){
 }
 
 render();
-const CHARTS={status:['Team status',()=>Object.entries(TS).map(([k,[l,c]])=>[l,TEAMS.filter(t=>t.status===k).length,TEAMS.length,c||'#8A8A8A'])],progress:['Progress by team',()=>TEAMS.map(t=>[t.id,doneCount(t),ALL.length,'#2E7D32'])],stages:['Stage completion',()=>ALL.map(s=>[s,TEAMS.filter(t=>t.stages[s]==='done').length,TEAMS.length,'#2E7D32'])],docs:['Documents submitted',()=>TEAMS.map(t=>[t.id,DOCS.filter(d=>t.docs.includes(d)||(t.docLinks||{})[d]).length,DOCS.length,'#ED1C24'])]};
+const CHARTS={status:['Team status',()=>Object.entries(TS).map(([k,[l,c]])=>[l,TEAMS.filter(t=>t.status===k).length,TEAMS.length,c||'#8A8A8A'])],progress:['Progress by team',()=>TEAMS.map(t=>[t.id,doneCount(t),ALL.length,'#2E7D32'])],stages:['Stage completion',()=>ALL.map(s=>[s,TEAMS.filter(t=>t.stages[s]==='done'||t.stages[s]==='startup').length,TEAMS.length,'#2E7D32'])],docs:['Documents submitted',()=>TEAMS.map(t=>[t.id,DOCS.filter(d=>t.docs.includes(d)||(t.docLinks||{})[d]).length,DOCS.length,'#ED1C24'])]};
 function showChart(k){render();const [title,data]=CHARTS[k];document.getElementById('chartBox').innerHTML=`<div class='panel'><h4>${title}</h4>${data().map(([l,v,m,c])=>`<div style='display:grid;grid-template-columns:minmax(0,150px) 1fr 60px;gap:8px;align-items:center;font-size:12px;margin:6px 0'><span style='overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>${esc(l)}</span><div style='background:#ddd;height:12px;border-radius:6px;overflow:hidden'><i style='display:block;height:100%;width:${m?Math.round(v/m*100):0}%;background:${c}'></i></div><b>${v} / ${m}</b></div>`).join('')}</div>`;document.getElementById('landing').style.display='none';document.getElementById('dash').style.display='block';window.scrollTo(0,0);}
 function showLanding(){document.getElementById('dash').style.display='none';document.getElementById('landing').style.display='block';}
 const tm=document.getElementById('teamModal');
